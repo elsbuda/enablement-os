@@ -1,9 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  cacheComponents: true,
-  partialPrefetching: true,
+  // Pages read the session cookie on every request; keep rendering dynamic for release 1.
+  cacheComponents: false,
 };
 
 export default nextConfig;

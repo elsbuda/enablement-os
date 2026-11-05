@@ -9,7 +9,9 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "db:test": "node scripts/db-test.mjs"
+    "db:test": "node scripts/db-test.mjs",
+    "templates:export": "node --experimental-strip-types scripts/export-templates.mjs",
+    "templates:seed": "node scripts/seed-templates.mjs"
   },
   "dependencies": {
     "next": "16.4.3",

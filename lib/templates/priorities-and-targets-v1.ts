@@ -1,0 +1,67 @@
+/**
+ * Priorities and Targets v1 — DERIVED from the Aurelien OKR template
+ * (4b. Objectives and Key Results OKR.xlsx, sheet 'OKR - Template 1').
+ * Derived: objective-with-up-to-three-targets structure, the status list, the 0–1 result
+ * score and the two averages (E7, E21). Original: bands, advice, validation limits, wording.
+ * Stays at requires_confirmation / review until the licence text is filed.
+ */
+export const PRIORITIES_AND_TARGETS_V1 = {
+  tool_key: "priorities_and_targets",
+  version: 1,
+  kind: "tool",
+  category: "strategy",
+  title: "Priorities and Targets",
+  permission_status: "requires_confirmation",
+  licence_reference: null,
+  publication_status: "review",
+  body: {
+    intro: "A priority is one thing you will change in the business this year. A target is how you will know it happened.",
+    steps: [
+      { id: "confirm", question: "Keep, reword or replace each suggested priority?", field: "priorities[].title", help: "Three to five priorities. Fewer is better." },
+      { id: "objective", question: "Finish the sentence: By the end of the year, ...", field: "priorities[].objective", help: "Plain words." },
+      { id: "targets", question: "What will you measure, what number by when, and who owns it?", field: "priorities[].targets[]", help: "One to three targets per priority." },
+      { id: "review", question: "How far did this target land?", field: "priorities[].targets[].result", help: "0 = not at all, 1 = fully. Used at the quarterly review only." },
+    ],
+    input_schema: {
+      type: "object", required: ["plan_year", "priorities"],
+      properties: {
+        plan_year: { type: "integer", minimum: 2026 },
+        assessment_id: { type: ["string", "null"] },
+        priorities: { type: "array", minItems: 3, maxItems: 5, items: { type: "object", required: ["title", "objective", "targets"], properties: {
+          title: { type: "string", minLength: 5, maxLength: 80 },
+          objective: { type: "string", minLength: 10, maxLength: 200 },
+          source_area_key: { type: ["string", "null"] },
+          targets: { type: "array", minItems: 1, maxItems: 3, items: { type: "object", required: ["measure", "target_value", "unit", "direction", "owner_user_id", "due_quarter"], properties: {
+            measure: { type: "string", maxLength: 80 }, kpi_id: { type: ["string", "null"] },
+            target_value: { type: "number", not: { const: 0 } }, unit: { enum: ["R", "%", "count", "days"] },
+            direction: { enum: ["higher_better", "lower_better"] }, owner_user_id: { type: "string", format: "accepted_member" },
+            due_quarter: { enum: ["Q1", "Q2", "Q3", "Q4"] },
+            status: { enum: ["Working on it", "Done", "Stuck", "Moved to next quarter"] },
+            result: { type: ["number", "null"], minimum: 0, maximum: 1, multipleOf: 0.1 },
+          } } },
+        } } },
+      },
+    },
+    output_schema: { type: "object", properties: {
+      priority_scores: { type: "array", items: { type: "object", properties: { index: { type: "integer" }, value: { type: ["number", "null"] } } } },
+      priority_bands: { type: "array", items: { type: ["string", "null"] } },
+      plan_score: { type: ["number", "null"] }, plan_band: { type: ["string", "null"] },
+    } },
+    rules: [
+      { op: "avg", over: "priorities[*].targets[*].result", group_by: "priorities", ignore_null: true, as: "priority_scores" },
+      { op: "band", field: "priority_scores[*].value", bands: "interpretation", as: "priority_bands" },
+      { op: "avg", over: "priority_scores[*].value", ignore_null: true, as: "plan_score" },
+      { op: "band", field: "plan_score", bands: "interpretation", as: "plan_band" },
+    ],
+    interpretation: [
+      { from: 0.7, to: 1.0, label: "Largely landed", advice: "Keep the priority only if the next step is clear; otherwise retire it." },
+      { from: 0.4, to: 0.69, label: "Partly landed", advice: "Keep it and reset the target for next quarter." },
+      { from: 0.0, to: 0.39, label: "Did not land", advice: "Ask whether the priority was wrong, under-resourced or badly measured before adding more actions." },
+    ],
+  },
+  source_references: [
+    { file: "4b. Objectives and Key Results OKR.xlsx", sheet: "OKR - Template 1", cells: "A3:E21; E7 =AVERAGE(E4:E6); E21 =AVERAGE(E7,E13,E19); status list C4:C6",
+      toolkit_path: "Aurelien Toolkits/1. Strategy Toolkit/1. Strategy Toolkit/2. Strategy Frameworks & Tools/8. Other/4b. Objectives and Key Results OKR.xlsx", relationship: "derived" },
+    { file: "Enablement OS Stage 2 Specification", sheet: "Health Check v1", cells: "suggested priorities", toolkit_path: null, relationship: "original" },
+  ],
+} as const;
