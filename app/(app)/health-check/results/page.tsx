@@ -48,7 +48,7 @@ export default async function Results({ searchParams }: { searchParams: Promise<
               <span className="kv">{sp.reason}. Lowest statements: {sp.triggers.map((t) => `${t.text.toLowerCase()} (${t.value})`).join("; ")}</span>
             </p>
           ))}
-          <div className="actions"><span className="btn" aria-disabled="true" style={{ opacity: 0.5 }}>Build the plan from these (next stage)</span></div>
+          <div className="actions"><a className="btn" href="/plan">Build the plan from these</a></div>
         </div>
       </div>
     </>

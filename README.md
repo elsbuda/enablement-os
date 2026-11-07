@@ -3,18 +3,21 @@
 Annual-subscription business software for owner-led South African companies (10–100 staff).
 Four connected workspaces: Business Health Check, Strategy and Growth Plan, 90 Day Execution, CEO Scorecard.
 
-## Status (5 November 2026)
+## Status (7 November 2026)
 
 | Part | State |
 |---|---|
-| Database schema (17 tables) and row-level security | Done, proven by `npm run db:test` (17 checks on real Postgres) |
+| Database schema (17 tables) and row-level security | Done, proven by `npm run db:test` (21 checks on real Postgres) |
 | Template catalogue with publication guard | Done; unconfirmed templates cannot be published (database constraint) |
-| Scoring engine (declarative rules, Health Check) | Done, `npm test` (9 tests) |
+| Scoring engine (declarative rules, Health Check) | Done, `npm test` (19 tests) |
 | Sign-in / create account (Supabase Auth) | Built; needs a Supabase project to run |
 | Company context (versioned) | Built |
 | Business Health Check (48 statements, 8 areas, results, history) | Built |
-| Strategy and Growth Plan, 90 Day Execution, CEO Scorecard, quarterly review | Not started |
-| Paystack billing | Not started (trial subscription is created on sign-up) |
+| Strategy and Growth Plan (priorities, targets, KPI library, review scoring) | Built |
+| 90 Day Execution (periods, initiatives, actions, late/at-risk, weekly check-in, close period) | Built |
+| CEO Scorecard (monthly actuals, RAG, trend) | Built |
+| Management report export (PDF/CSV), invitations, Paystack billing | Not started |
+| Trial subscription | Created on sign-up (3-seat BUILD); payment not yet wired |
 
 Nothing here is production-ready until it has run against a real Supabase project with a real user.
 
@@ -50,7 +53,13 @@ Next.js 16.4.3 · React 19.3.1 · TypeScript 5.9.3 · @supabase/supabase-js 2.11
 app/(auth)/sign-in        sign in / create account (server actions)
 app/(app)/setup           company context, versioned
 app/(app)/health-check    questionnaire by area; results; history
+app/(app)/plan            priorities, targets, review mode
+app/(app)/execution       90-day board, weekly check-in
+app/(app)/scorecard       KPIs, monthly actuals, RAG
 app/(app)/home            dashboard
+lib/engine/plan.ts        plan scoring (rules runner)
+lib/engine/execution.ts   late/at-risk derivation, periods
+lib/engine/scorecard.ts   RAG, variance, trend
 lib/engine/rules.ts       declarative rules runner
 lib/engine/health-check.ts scoring and suggested priorities
 lib/templates/            tool definitions (TS source + exported JSON)

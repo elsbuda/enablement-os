@@ -116,6 +116,30 @@ await expectOk("draft requires_confirmation template is allowed and invisible to
   if (r.rows.length !== 1 || r.rows[0].tool_key !== "health_check") throw new Error(JSON.stringify(r.rows));
 });
 
+console.log("Stage 4 flow under RLS (plan -> period -> actions -> actuals -> close)");
+await expectOk("owner A builds a plan with targets, starts a period, adds actions, enters actuals, closes the period", async () => {
+  await sql("update subscriptions set status='active' where company_id=$1", [A]);
+  const pid = (await as(U.ownerA, () => sql("insert into priorities (company_id,plan_year,title,objective,rank,source_area_key) values ($1,2027,'Grow sales without the owner','By year end the reps run the process',1,'sales') returning id", [A]))).rows[0].id;
+  const kid = (await as(U.ownerA, () => sql("insert into kpis (company_id,name,unit,direction,target_value,perspective,owner_user_id) values ($1,'Proposals issued','count','higher_better',6,'customer',$2) returning id", [A, U.ownerA]))).rows[0].id;
+  await as(U.ownerA, () => sql("insert into targets (company_id,priority_id,measure,kpi_id,target_value,unit,direction,owner_user_id,due_quarter) values ($1,$2,'Proposals issued',$3,72,'count','higher_better',$4,'Q4')", [A, pid, kid, U.ownerA]));
+  const per = (await as(U.ownerA, () => sql("insert into periods (company_id,label,start_date,end_date,status) values ($1,'Q1 2027','2027-01-01','2027-04-01','active') returning id", [A]))).rows[0].id;
+  const init = (await as(U.ownerA, () => sql("insert into initiatives (company_id,priority_id,title,owner_user_id) values ($1,$2,'Win back lapsed accounts',$3) returning id", [A, pid, U.ownerA]))).rows[0].id;
+  await as(U.editorA, () => sql("insert into actions (company_id,initiative_id,period_id,title,owner_user_id,due_date,kpi_id) values ($1,$2,$3,'Call top 10 accounts',$4,'2027-02-03',$5)", [A, init, per, U.editorA, kid]));
+  await as(U.editorA, () => sql("insert into kpi_actuals (kpi_id,company_id,period_month,actual_value,entered_by) values ($1,$2,'2027-01-01',4,$3) on conflict (kpi_id,period_month) do update set actual_value=excluded.actual_value", [kid, A, U.editorA]));
+  const r = await as(U.ownerA, () => sql("select (select count(*) from targets where company_id=$1)::int t, (select count(*) from actions where company_id=$1)::int a, (select actual_value from kpi_actuals where kpi_id=$2 and period_month='2027-01-01') v", [A, kid]));
+  if (r.rows[0].t !== 1 || r.rows[0].a !== 1 || Number(r.rows[0].v) !== 4) throw new Error(JSON.stringify(r.rows[0]));
+  await as(U.ownerA, () => sql("update targets set result=0.7, status='done' where company_id=$1", [A]));
+  await as(U.ownerA, () => sql("insert into reviews (company_id,period_id,held_on,achieved_text,created_by) values ($1,$2,'2027-04-01','Process defined',$3)", [A, per, U.ownerA]));
+});
+await expectErr("a second active period for the same company is refused", () =>
+  as(U.ownerA, () => sql("insert into periods (company_id,label,start_date,end_date,status) values ($1,'Dup','2027-01-01','2027-04-01','active')", [A])), /periods_one_active/);
+await expectOk("owner B sees none of A's plan, actions or actuals", async () => {
+  const r = await as(U.ownerB, () => sql("select (select count(*) from priorities)::int p, (select count(*) from targets)::int t, (select count(*) from actions)::int a, (select count(*) from kpi_actuals)::int k, (select count(*) from periods)::int pe"));
+  const z = r.rows[0]; if (z.p + z.t + z.a + z.k + z.pe !== 0) throw new Error(JSON.stringify(z));
+});
+await expectErr("viewer A cannot enter actuals", () =>
+  as(U.viewerA, () => sql("insert into kpi_actuals (kpi_id,company_id,period_month,actual_value) select id,$1,'2027-02-01',1 from kpis where company_id=$1", [A])), /policy/);
+
 await client.end();
 console.log(failures ? `\n${failures} FAILED` : "\nAll isolation checks passed");
 process.exit(failures ? 1 : 0);

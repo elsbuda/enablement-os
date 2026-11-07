@@ -15,9 +15,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <Link href="/home">Home</Link>
         <Link href="/health-check">Business Health Check</Link>
         <Link href="/health-check/results">Health Check results</Link>
-        <span style={{ display: "block", padding: "8px 10px", fontSize: 14, color: "var(--muted)" }}>Strategy and Growth Plan (next)</span>
-        <span style={{ display: "block", padding: "8px 10px", fontSize: 14, color: "var(--muted)" }}>90 Day Execution (next)</span>
-        <span style={{ display: "block", padding: "8px 10px", fontSize: 14, color: "var(--muted)" }}>CEO Scorecard (next)</span>
+        <Link href="/plan">Strategy and Growth Plan</Link>
+        <Link href="/execution">90 Day Execution</Link>
+        <Link href="/execution/checkin">Weekly check-in</Link>
+        <Link href="/scorecard">CEO Scorecard</Link>
         <div className="grp">Account</div>
         <Link href="/setup">Company context</Link>
         <form action={signOut}><button className="btn ghost" type="submit" style={{ marginTop: 8 }}>Sign out</button></form>
