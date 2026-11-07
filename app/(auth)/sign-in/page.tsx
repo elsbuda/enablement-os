@@ -1,4 +1,4 @@
-import { signIn, signUp } from "./actions";
+import { signIn, signUp, resendConfirmation } from "./actions";
 
 export default async function SignIn({ searchParams }: { searchParams: Promise<{ error?: string; next?: string; sent?: string }> }) {
   const { error, next, sent } = await searchParams;
@@ -9,7 +9,7 @@ export default async function SignIn({ searchParams }: { searchParams: Promise<{
       <p className="sub">Sign in with your work email. New company? Create an account and you become its owner.</p>
       {!configured && <div className="error">Supabase is not configured. Copy .env.example to .env.local and fill in the project URL and anon key.</div>}
       {error && <div className="error">{error}</div>}
-      {sent && <div className="card">Check your email to confirm your account, then sign in.</div>}
+      {sent && <div className="card" style={{ marginBottom: 14 }}>Confirmation email sent. Check your inbox and spam folder, click the link, then sign in here.</div>}
       <form action={signIn} className="card">
         <input type="hidden" name="next" value={next ?? "/"} />
         <label htmlFor="email">Work email</label>
@@ -20,6 +20,10 @@ export default async function SignIn({ searchParams }: { searchParams: Promise<{
           <button className="btn" type="submit" disabled={!configured}>Sign in</button>
           <button className="btn ghost" formAction={signUp} type="submit" disabled={!configured}>Create account</button>
         </div>
+        <p className="note" style={{ marginTop: 14 }}>
+          Created an account but no confirmation email? Check spam, then{" "}
+          <button type="submit" formAction={resendConfirmation} formNoValidate disabled={!configured} style={{ background: "none", border: 0, padding: 0, color: "var(--accent)", font: "inherit", cursor: "pointer", textDecoration: "underline" }}>resend the confirmation email</button>.
+        </p>
       </form>
       <p className="note">Passwords are handled by Supabase Auth; this app never stores them.</p>
     </div>

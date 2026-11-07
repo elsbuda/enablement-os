@@ -30,6 +30,15 @@ export async function signUp(form: FormData) {
   redirect("/sign-in?sent=1");
 }
 
+export async function resendConfirmation(form: FormData) {
+  const email = String(form.get("email") ?? "").trim().toLowerCase();
+  if (!email) redirect("/sign-in?error=" + encodeURIComponent("Enter your email first, then click Resend."));
+  const supabase = await supabaseServer();
+  const { error } = await supabase.auth.resend({ type: "signup", email });
+  if (error) redirect(`/sign-in?error=${encodeURIComponent(error.message)}`);
+  redirect("/sign-in?sent=1");
+}
+
 export async function signOut() {
   const supabase = await supabaseServer();
   await supabase.auth.signOut();
