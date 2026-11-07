@@ -1,5 +1,6 @@
 import { getSession, supabaseServer } from "@/lib/supabase/server";
 import { saveCompanyContext } from "./actions";
+import { acceptInvitation } from "@/app/(app)/team/actions";
 
 const SECTORS = ["Engineering services", "Distribution", "IT and software", "Professional services", "Light manufacturing", "Other"];
 const STAFF = ["10 to 25", "26 to 50", "51 to 100"];
@@ -19,8 +20,30 @@ export default async function Setup({ searchParams }: { searchParams: Promise<{ 
     profile = p;
   }
   const isNew = !s.companyId;
+  let pending: { token: string; role: string; company_id: string; company_name?: string }[] = [];
+  if (isNew) {
+    const supabase = await supabaseServer();
+    const { data: inv } = await supabase.from("invitations").select("token, role, company_id").is("accepted_at", null).is("revoked_at", null).gt("expires_at", new Date().toISOString());
+    for (const i of inv ?? []) {
+      const { data: pv } = await supabase.rpc("invitation_preview", { p_token: i.token });
+      pending.push({ ...i, company_name: (pv as { company_name: string }[] | null)?.[0]?.company_name });
+    }
+  }
   return (
     <>
+      {pending.length > 0 && (
+        <div className="card" style={{ marginBottom: 16 }}>
+          <h2>You have been invited</h2>
+          {pending.map((i) => (
+            <form action={acceptInvitation} key={i.token} className="actions" style={{ marginTop: 8 }}>
+              <input type="hidden" name="token" value={i.token} />
+              <span>Join <strong>{i.company_name ?? "a company"}</strong> as {i.role}</span>
+              <button className="btn" type="submit">Join</button>
+            </form>
+          ))}
+          <p className="note">Or create your own company workspace below instead.</p>
+        </div>
+      )}
       <h1>{isNew ? "Create your company workspace" : `Company context: ${company?.name}`}</h1>
       <p className="sub">Entered once. Every workspace reads from this, so you never type it again. Each save keeps a dated version.</p>
       {error && <div className="error">{error}</div>}

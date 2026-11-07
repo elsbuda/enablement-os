@@ -24,12 +24,16 @@ await sql("drop schema if exists public cascade; create schema public; drop sche
 // Stand-in for Supabase's auth.uid(): reads the JWT sub claim from a session setting, as Supabase does.
 await sql(`create or replace function auth.uid() returns uuid language sql stable as $$
   select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;`);
+await sql(`create or replace function auth.email() returns text language sql stable as $$
+  select nullif(current_setting('request.jwt.claim.email', true), '') $$;`);
 await sql(`do $$ begin if not exists (select 1 from pg_roles where rolname='authenticated') then create role authenticated nologin; end if; end $$;`);
 await sql(readFileSync(new URL("../supabase/migrations/0001_schema.sql", import.meta.url), "utf8"));
 await sql(readFileSync(new URL("../supabase/migrations/0002_rls.sql", import.meta.url), "utf8"));
+await sql(readFileSync(new URL("../supabase/migrations/0003_invitations.sql", import.meta.url), "utf8"));
 await sql("grant usage on schema public to authenticated; grant all on all tables in schema public to authenticated; grant all on all sequences in schema public to authenticated; grant execute on all functions in schema public to authenticated;");
 
 // --- seed users (as the service role would) ---
+const EMAILS = {};
 const U = { ownerA: randomUUID(), editorA: randomUUID(), viewerA: randomUUID(), ownerB: randomUUID(), outsider: randomUUID() };
 for (const [k, id] of Object.entries(U)) await sql("insert into users (id,email) values ($1,$2)", [id, `${k}@test.local`]);
 
@@ -38,6 +42,8 @@ async function as(userId, fn) {
   await sql("begin");
   await sql("set local role authenticated");
   await sql(`select set_config('request.jwt.claim.sub', $1, true)`, [userId]);
+  const em = (await sql("select email from users where id=$1", [userId])).rows[0]?.email ?? EMAILS[userId] ?? "";
+  await sql(`select set_config('request.jwt.claim.email', $1, true)`, [em]);
   try { const r = await fn(); await sql("commit"); return r; }
   catch (e) { await sql("rollback"); throw e; }
 }
@@ -139,6 +145,53 @@ await expectOk("owner B sees none of A's plan, actions or actuals", async () => 
 });
 await expectErr("viewer A cannot enter actuals", () =>
   as(U.viewerA, () => sql("insert into kpi_actuals (kpi_id,company_id,period_month,actual_value) select id,$1,'2027-02-01',1 from kpis where company_id=$1", [A])), /policy/);
+
+console.log("Invitations");
+const newbie = randomUUID(); EMAILS[newbie] = "newbie@test.local";
+const stranger = randomUUID(); EMAILS[stranger] = "stranger@test.local";
+await sql("update subscriptions set seats=10 where company_id=$1", [A]);
+let token;
+await expectOk("admin creates an editor invitation", async () => {
+  const r = await as(U.ownerA, () => sql("insert into invitations (company_id,email,role,invited_by) values ($1,'Newbie@Test.local','editor',$2) returning token", [A, U.ownerA]));
+  token = r.rows[0].token; if (!token || token.length < 40) throw new Error("no token");
+});
+await expectErr("editor cannot create invitations", () =>
+  as(U.editorA, () => sql("insert into invitations (company_id,email,role,invited_by) values ($1,'x@test.local','viewer',$2)", [A, U.editorA])), /policy/);
+await expectErr("an owner-role invitation is refused", () =>
+  as(U.ownerA, () => sql("insert into invitations (company_id,email,role,invited_by) values ($1,'y@test.local','owner',$2)", [A, U.ownerA])), /check/);
+await expectOk("preview works without membership", async () => {
+  const r = await as(stranger, () => sql("select * from invitation_preview($1)", [token]));
+  if (r.rows[0].company_name !== "Company A" || r.rows[0].role !== "editor") throw new Error(JSON.stringify(r.rows));
+});
+await expectErr("the wrong signed-in email cannot accept", () => as(stranger, () => sql("select accept_invitation($1)", [token])), /sent to/);
+await expectOk("the invitee accepts and becomes an editor of A", async () => {
+  const r = await as(newbie, () => sql("select accept_invitation($1) cid", [token]));
+  if (r.rows[0].cid !== A) throw new Error("wrong company");
+  const m = await as(newbie, () => sql("select role from memberships where user_id=$1", [newbie]));
+  if (m.rows[0].role !== "editor") throw new Error(JSON.stringify(m.rows));
+});
+await expectErr("the same token cannot be used twice", () => as(newbie, () => sql("select accept_invitation($1)", [token])), /already/);
+await expectOk("new editor can write in A and sees nothing of B", async () => {
+  await as(newbie, () => sql("insert into priorities (company_id,plan_year,title,objective,rank) values ($1,2027,'Newbie priority','Written by the invited editor',4)", [A]));
+  const r = await as(newbie, () => sql("select count(*)::int n from companies where id=$1", [B]));
+  if (r.rows[0].n !== 0) throw new Error("leak");
+});
+await expectErr("admin cannot demote the owner", () => as(U.ownerA, () => sql("update memberships set role='viewer' where company_id=$1 and role='owner'", [A])), /owner role/);
+await expectOk("editor's delete of the owner row affects 0 rows (policy)", async () => {
+  const r = await as(U.editorA, () => sql("delete from memberships where company_id=$1 and role='owner'", [A]));
+  if (r.rowCount !== 0) throw new Error("editor deleted a row");
+});
+await expectErr("owner row cannot be deleted even by an admin-level user", () => as(U.ownerA, () => sql("delete from memberships where company_id=$1 and role='owner'", [A])), /owner|yourself/);
+await expectOk("admin changes the new editor to viewer and removes them", async () => {
+  await as(U.ownerA, () => sql("update memberships set role='viewer' where user_id=$1", [newbie]));
+  const r = await as(U.ownerA, () => sql("delete from memberships where user_id=$1", [newbie]));
+  if (r.rowCount !== 1) throw new Error("not removed");
+});
+await expectErr("seat limit applies to accepted invitations", async () => {
+  await sql("update subscriptions set seats=2 where company_id=$1", [A]); // owner + editor already = 2
+  const t = (await as(U.ownerA, () => sql("insert into invitations (company_id,email,role,invited_by) values ($1,'stranger@test.local','editor',$2) returning token", [A, U.ownerA]))).rows[0].token;
+  await as(stranger, () => sql("select accept_invitation($1)", [t]));
+}, /seat limit/);
 
 await client.end();
 console.log(failures ? `\n${failures} FAILED` : "\nAll isolation checks passed");

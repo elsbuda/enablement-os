@@ -18,16 +18,16 @@ export async function signIn(form: FormData) {
 }
 
 export async function signUp(form: FormData) {
-  const { email, password } = creds(form);
+  const { email, password, next } = creds(form);
   const supabase = await supabaseServer();
-  const { data, error } = await supabase.auth.signUp({ email, password });
-  if (error) redirect(`/sign-in?error=${encodeURIComponent(error.message)}`);
+  const { data, error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? ""}/sign-in?next=${encodeURIComponent(next)}` } });
+  if (error) redirect(`/sign-in?error=${encodeURIComponent(error.message)}&next=${encodeURIComponent(next)}`);
   // Profile row (RLS: users_self_write). If email confirmation is on, there is no session yet.
   if (data.session && data.user) {
     await supabase.from("users").upsert({ id: data.user.id, email });
-    redirect("/setup");
+    redirect(next === "/" ? "/setup" : next);
   }
-  redirect("/sign-in?sent=1");
+  redirect(`/sign-in?sent=1&next=${encodeURIComponent(next)}`);
 }
 
 export async function resendConfirmation(form: FormData) {

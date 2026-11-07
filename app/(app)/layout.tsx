@@ -21,6 +21,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <Link href="/scorecard">CEO Scorecard</Link>
         <div className="grp">Account</div>
         <Link href="/setup">Company context</Link>
+        <Link href="/team">Team</Link>
         <form action={signOut}><button className="btn ghost" type="submit" style={{ marginTop: 8 }}>Sign out</button></form>
       </nav>
       <main className="content">{children}</main>
