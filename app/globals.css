@@ -158,7 +158,8 @@ td input, td select { min-height: 34px; padding: 5px 8px; font-size: 13.5px; }
 /* Signals ---------------------------------------------------------------- */
 .pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; padding: 3px 9px; border-radius: 999px; line-height: 1.3; white-space: nowrap; }
 .pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; opacity: .9; }
-.pill.n::before, a.pill::before { display: none; }
+.pill.n::before, .pill.rank::before, a.pill::before { display: none; }
+.pill.rank { width: 22px; height: 22px; padding: 0; justify-content: center; border-radius: 50%; }
 .g { background: var(--good-bg); color: var(--good); } .w { background: var(--warn-bg); color: var(--warn); } .b { background: var(--bad-bg); color: var(--bad); } .n { background: var(--tint); color: var(--accent); }
 a.pill { text-decoration: none; background: transparent; color: var(--muted); border: 1px solid var(--line); }
 a.pill.n { background: var(--tint); color: var(--accent); border-color: transparent; }

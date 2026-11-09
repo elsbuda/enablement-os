@@ -44,7 +44,7 @@ export default async function Results({ searchParams }: { searchParams: Promise<
           <h2>Suggested priorities</h2>
           {r.suggested.map((sp, i) => (
             <p key={sp.area_key}>
-              <span className={`pill ${pill(r.areas.find((x) => x.area_key === sp.area_key)!.band)}`}>{i + 1}</span> <strong>{sp.title}</strong> {sp.score_pct}%<br />
+              <span className={`pill rank ${pill(r.areas.find((x) => x.area_key === sp.area_key)!.band)}`}>{i + 1}</span> <strong>{sp.title}</strong> {sp.score_pct}%<br />
               <span className="kv">{sp.reason}. Lowest statements: {sp.triggers.map((t) => `${t.text.toLowerCase()} (${t.value})`).join("; ")}</span>
             </p>
           ))}
