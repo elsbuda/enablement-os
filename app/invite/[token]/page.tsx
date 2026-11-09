@@ -24,7 +24,7 @@ export default async function Invite({ params, searchParams }: { params: Promise
             {!s ? (
               <>
                 <p className="kv">Sign in with that email, or create an account with it, and you will come back here to accept.</p>
-                <div className="actions"><a className="btn" href={`/sign-in?next=${encodeURIComponent(`/invite/${token}`)}`}>Sign in or create account</a></div>
+                <div className="actions"><a className="btn" href={`/sign-up?next=${encodeURIComponent(`/invite/${token}`)}&email=${encodeURIComponent(inv.email)}`}>Create account</a><a className="btn ghost" href={`/sign-in?next=${encodeURIComponent(`/invite/${token}`)}&email=${encodeURIComponent(inv.email)}`}>Sign in</a></div>
               </>
             ) : s.email.toLowerCase() !== inv.email.toLowerCase() ? (
               <>

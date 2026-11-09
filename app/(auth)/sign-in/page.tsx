@@ -1,32 +1,28 @@
-import { signIn, signUp, resendConfirmation } from "./actions";
+import { signIn } from "./actions";
 
-export default async function SignIn({ searchParams }: { searchParams: Promise<{ error?: string; next?: string; sent?: string }> }) {
-  const { error, next, sent } = await searchParams;
+export default async function SignIn({ searchParams }: { searchParams: Promise<{ error?: string; next?: string; sent?: string; email?: string }> }) {
+  const { error, next, sent, email } = await searchParams;
   const configured = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+  const signUpHref = `/sign-up${next ? `?next=${encodeURIComponent(next)}` : ""}`;
   return (
     <div className="auth">
       <div className="brand"><i aria-hidden /> Enablement OS</div>
       <h1>Sign in</h1>
-      <p className="sub">Use your work email. New company? Create an account and you become its owner.</p>
+      <p className="sub">Use the work email you registered with.</p>
       {!configured && <div className="error">Supabase is not configured. Copy .env.example to .env.local and fill in the project URL and anon key.</div>}
-      {error && <div className="error">{error}</div>}
-      {sent && <div className="ok">Confirmation email sent. Check your inbox and spam folder, click the link, then sign in here.</div>}
+      {error && <div className="error">{error}{error.startsWith("Email or password") && <> <a href={signUpHref}>Create an account</a> if you are new.</>}</div>}
+      {sent && <div className="ok">Confirmation email sent. Click the link in it, then sign in here.</div>}
       <form action={signIn} className="card">
         <input type="hidden" name="next" value={next ?? "/"} />
         <label htmlFor="email">Work email</label>
-        <input id="email" name="email" type="email" required autoComplete="email" />
+        <input id="email" name="email" type="email" required autoComplete="email" defaultValue={email ?? ""} />
         <label htmlFor="password" style={{ marginTop: 12 }}>Password</label>
-        <input id="password" name="password" type="password" required minLength={8} autoComplete="current-password" />
+        <input id="password" name="password" type="password" required autoComplete="current-password" />
         <div className="actions">
           <button className="btn" type="submit" disabled={!configured}>Sign in</button>
-          <button className="btn ghost" formAction={signUp} type="submit" disabled={!configured}>Create account</button>
         </div>
-        <p className="note" style={{ marginTop: 14 }}>
-          Created an account but no confirmation email? Check spam, then{" "}
-          <button type="submit" formAction={resendConfirmation} formNoValidate disabled={!configured} className="btn link">resend the confirmation email</button>.
-        </p>
       </form>
-      <p className="note">Passwords are handled by Supabase Auth; this app never stores them.</p>
+      <p className="note">New company? <a href={signUpHref}>Create an account</a> and you become its owner. Passwords are handled by Supabase Auth; this app never stores them.</p>
     </div>
   );
 }
