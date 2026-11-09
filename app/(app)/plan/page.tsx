@@ -47,7 +47,7 @@ export default async function Plan({ searchParams }: { searchParams: Promise<{ y
         {priorities.length > 0 && <a className="btn ghost" href={`/plan/review?year=${year}`} style={{ marginLeft: "auto" }}>Quarterly review mode</a>}
       </div>
       {sp.error && <div className="error">{sp.error}</div>}
-      {sp.saved && <div className="card" style={{ marginBottom: 14 }}>{sp.saved}</div>}
+      {sp.saved && <div className="ok">{sp.saved}</div>}
 
       {canEdit && suggestions.length > 0 && (
         <form action={acceptSuggestions} className="card" style={{ marginBottom: 16 }}>
@@ -96,7 +96,7 @@ export default async function Plan({ searchParams }: { searchParams: Promise<{ y
                   <td>{t.due_quarter} {year}</td>
                   <td><span className={`pill ${t.status === "done" ? "g" : t.status === "stuck" ? "b" : "n"}`}>{t.status.replace(/_/g, " ")}</span></td>
                   <td>{t.kpi_id ? <span className="pill g">tracked</span> : <span className="kv">custom</span>}</td>
-                  {isAdmin && <td><form action={deleteTarget}><input type="hidden" name="id" value={t.id} /><input type="hidden" name="plan_year" value={year} /><button className="btn ghost" type="submit" style={{ padding: "4px 8px", fontSize: 12 }}>Remove</button></form></td>}
+                  {isAdmin && <td><form action={deleteTarget}><input type="hidden" name="id" value={t.id} /><input type="hidden" name="plan_year" value={year} /><button className="btn ghost small" type="submit">Remove</button></form></td>}
                 </tr>))}
               </tbody>
             </table></div>
@@ -122,7 +122,7 @@ export default async function Plan({ searchParams }: { searchParams: Promise<{ y
               </div>
             </form>
           )}
-          {isAdmin && <form action={retirePriority} style={{ marginTop: 10 }}><input type="hidden" name="id" value={p.id} /><input type="hidden" name="plan_year" value={year} /><button className="btn ghost" type="submit" style={{ fontSize: 12, padding: "4px 8px" }}>Retire this priority</button></form>}
+          {isAdmin && <form action={retirePriority} style={{ marginTop: 10 }}><input type="hidden" name="id" value={p.id} /><input type="hidden" name="plan_year" value={year} /><button className="btn ghost small" type="submit">Retire this priority</button></form>}
         </div>
       ))}
 

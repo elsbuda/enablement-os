@@ -11,7 +11,8 @@ export default async function Invite({ params, searchParams }: { params: Promise
 
   return (
     <div className="auth">
-      <h1>Enablement OS</h1>
+      <div className="brand"><i aria-hidden /> Enablement OS</div>
+      <h1>Your invitation</h1>
       {!inv ? <div className="error">This invitation link is not valid.</div>
         : inv.revoked ? <div className="error">This invitation was withdrawn. Ask the person who invited you for a new link.</div>
         : inv.accepted ? <div className="card">This invitation has already been used. <a href="/sign-in">Sign in</a>.</div>

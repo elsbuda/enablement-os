@@ -47,7 +47,7 @@ export default async function Setup({ searchParams }: { searchParams: Promise<{ 
       <h1>{isNew ? "Create your company workspace" : `Company context: ${company?.name}`}</h1>
       <p className="sub">Entered once. Every workspace reads from this, so you never type it again. Each save keeps a dated version.</p>
       {error && <div className="error">{error}</div>}
-      {saved && <div className="card" style={{ marginBottom: 14 }}>Saved. <a href="/health-check">Start the Business Health Check</a>.</div>}
+      {saved && <div className="ok">Saved. <a href="/health-check">Start the Business Health Check</a>.</div>}
       <form action={saveCompanyContext} className="card">
         <div className="form">
           <div><label htmlFor="name">Company name</label><input id="name" name="name" required minLength={2} maxLength={120} defaultValue={company?.name ?? ""} readOnly={!isNew && s.role !== "owner" && s.role !== "admin"} /></div>

@@ -27,20 +27,22 @@ export default async function Home() {
   return (
     <>
       <h1>{company?.name}</h1>
-      <p className="sub">{period ? `${period.label} · week ${weekOf(period.start_date, today)} of 13` : "No active 90-day period"}{last ? ` · last Health Check ${new Date(last.completed_at!).toLocaleDateString("en-ZA")}` : ""}</p>
-      <div className="row">
-        <div className="card"><div className="kv">Health Check</div>{last ? <><div className="big">{last.overall_score}%</div><div className="kv">lowest: {areas?.[0]?.area_key} {areas?.[0]?.score_pct}%</div><div className="actions"><a className="btn ghost" href={`/health-check/results?a=${last.id}`}>Results</a></div></> : <><div className="big">—</div><div className="actions"><a className="btn" href="/health-check">Start</a></div></>}</div>
-        <div className="card"><div className="kv">Priorities {defaultPlanYear()}</div><div className="big">{priorities.length}<span className="kv"> / 5</span></div><div className="kv">{targets} target{targets === 1 ? "" : "s"}</div><div className="actions"><a className="btn ghost" href="/plan">{priorities.length ? "Open plan" : "Build plan"}</a></div></div>
-        <div className="card"><div className="kv">Actions this period</div><div className="big">{sum.done}<span className="kv"> / {sum.total}</span></div><div className="kv">{sum.late} late · {sum.at_risk} at risk</div><div className="actions"><a className="btn ghost" href="/execution">{period ? "Board" : "Start period"}</a></div></div>
-        <div className="card"><div className="kv">Measures on target</div><div className="big">{onTarget}<span className="kv"> / {kpis?.length ?? 0}</span></div><div className="kv">this month</div><div className="actions"><a className="btn ghost" href="/scorecard">Scorecard</a></div></div>
+      <p className="sub">{period ? `${period.label}, week ${weekOf(period.start_date, today)} of 13.` : "No active 90-day period yet."}{last ? ` Last Health Check ${new Date(last.completed_at!).toLocaleDateString("en-ZA", { day: "numeric", month: "long", year: "numeric" })}.` : ""}</p>
+      <div className="stats">
+        <div className="stat"><div className="kv">Health Check</div>{last ? <><div className="big">{last.overall_score}%</div><div className="kv">lowest: {areas?.[0]?.area_key} {areas?.[0]?.score_pct}%</div><div className="actions"><a className="btn ghost" href={`/health-check/results?a=${last.id}`}>Results</a></div></> : <><div className="big">—</div><div className="actions"><a className="btn" href="/health-check">Start</a></div></>}</div>
+        <div className="stat"><div className="kv">Priorities {defaultPlanYear()}</div><div className="big">{priorities.length}<span className="kv"> / 5</span></div><div className="kv">{targets} target{targets === 1 ? "" : "s"}</div><div className="actions"><a className="btn ghost" href="/plan">{priorities.length ? "Open plan" : "Build plan"}</a></div></div>
+        <div className="stat"><div className="kv">Actions this period</div><div className="big">{sum.done}<span className="kv"> / {sum.total}</span></div><div className="kv">{sum.late} late, {sum.at_risk} at risk</div><div className="actions"><a className="btn ghost" href="/execution">{period ? "Board" : "Start period"}</a></div></div>
+        <div className="stat"><div className="kv">Measures on target</div><div className="big">{onTarget}<span className="kv"> / {kpis?.length ?? 0}</span></div><div className="kv">this month</div><div className="actions"><a className="btn ghost" href="/scorecard">Scorecard</a></div></div>
       </div>
       {attention.length > 0 && (
         <>
-          <h2 style={{ marginTop: 22 }}>Needs your attention</h2>
+          <div className="card" style={{ marginTop: 20 }}>
+          <h2>Needs your attention</h2>
           <div className="tw"><table><thead><tr><th>Action</th><th>Due</th><th>Status</th></tr></thead><tbody>
             {attention.map((a) => <tr key={a.id}><td>{a.title}</td><td>{a.due_date}</td><td><span className={`pill ${a.derived === "late" ? "b" : "w"}`}>{a.derived === "late" ? "Late" : "At risk"}</span></td></tr>)}
           </tbody></table></div>
           <div className="actions"><a className="btn" href="/execution/checkin">Open weekly check-in</a></div>
+          </div>
         </>
       )}
     </>

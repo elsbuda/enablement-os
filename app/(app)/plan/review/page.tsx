@@ -18,7 +18,7 @@ export default async function Review({ searchParams }: { searchParams: Promise<{
       <h1>Quarterly review · {year} plan</h1>
       <p className="sub">For each target, say how far it landed: 0 = not at all, 1 = fully. The plan score is the average of the priorities, each the average of its targets.</p>
       {sp.error && <div className="error">{sp.error}</div>}
-      {sp.saved && <div className="card" style={{ marginBottom: 14 }}>Review saved.</div>}
+      {sp.saved && <div className="ok">Review saved.</div>}
       <div className="row" style={{ marginBottom: 16 }}>
         <div className="card"><div className="kv">Plan score</div><div className="big">{score.plan_score == null ? "—" : score.plan_score.toFixed(2)}</div><div className="kv">{score.plan_band ?? (scored ? "" : "no results entered yet")}</div></div>
         {priorities.map((p, i) => (

@@ -1,28 +1,23 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/supabase/server";
 import { signOut } from "@/app/(auth)/sign-in/actions";
+import { NavLinks } from "./nav";
+
+const ROLE: Record<string, string> = { owner: "Owner", admin: "Admin", editor: "Editor", viewer: "Viewer" };
+const SUB: Record<string, string> = { trial: "Trial", active: "Active", past_due: "Payment due", cancelled: "Cancelled", expired: "Expired" };
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const s = await getSession().catch(() => null);
   if (!s) redirect("/sign-in");
+  const meta = [s.role && ROLE[s.role], s.subscriptionStatus && SUB[s.subscriptionStatus]].filter(Boolean).join(", ");
   return (
     <div className="shell">
       <nav className="side" aria-label="Workspaces">
-        <div className="brand">Enablement OS</div>
-        <div className="co">{s.email}{s.role ? ` · ${s.role}` : ""}{s.subscriptionStatus ? ` · ${s.subscriptionStatus}` : ""}</div>
-        <div className="grp">Workspaces</div>
-        <Link href="/home">Home</Link>
-        <Link href="/health-check">Business Health Check</Link>
-        <Link href="/health-check/results">Health Check results</Link>
-        <Link href="/plan">Strategy and Growth Plan</Link>
-        <Link href="/execution">90 Day Execution</Link>
-        <Link href="/execution/checkin">Weekly check-in</Link>
-        <Link href="/scorecard">CEO Scorecard</Link>
-        <div className="grp">Account</div>
-        <Link href="/setup">Company context</Link>
-        <Link href="/team">Team</Link>
-        <form action={signOut}><button className="btn ghost" type="submit" style={{ marginTop: 8 }}>Sign out</button></form>
+        <div className="brand"><i aria-hidden /> Enablement OS</div>
+        <div className="co"><b>{s.email}</b>{meta ? <><br />{meta}</> : null}</div>
+        <NavLinks />
+        <div className="spacer" />
+        <form action={signOut}><button className="btn ghost" type="submit">Sign out</button></form>
       </nav>
       <main className="content">{children}</main>
     </div>

@@ -39,7 +39,7 @@ export default async function Scorecard({ searchParams }: { searchParams: Promis
       <h1>CEO Scorecard · {monthLabel(latest)}</h1>
       <p className="sub">Each measure against its monthly target, with the trend over the last three months. Measures come from the targets you set in the plan.</p>
       {sp.error && <div className="error">{sp.error}</div>}
-      {sp.saved && <div className="card" style={{ marginBottom: 14 }}>{sp.saved}</div>}
+      {sp.saved && <div className="ok">{sp.saved}</div>}
       <div className="row" style={{ marginBottom: 14 }}>
         <div className="card"><div className="kv">Measures on target</div><div className="big">{onTarget}<span className="kv"> / {withData}</span></div><div className="kv">{rows.length - withData} without an actual yet</div></div>
         <div className="card"><div className="kv">Actions this period</div><div className="big">{sum.done}<span className="kv"> / {sum.total}</span></div><div className="kv">{period ? `${period.label}: ${sum.late} late, ${sum.at_risk} at risk` : "no active period"}</div></div>
@@ -55,7 +55,7 @@ export default async function Scorecard({ searchParams }: { searchParams: Promis
                 <td>{k.name}</td>
                 <td className="kv">{k.perspective ? PERSPECTIVE_LABEL[k.perspective as keyof typeof PERSPECTIVE_LABEL] : ""}</td>
                 <td>{memberName(members.find((m) => m.user_id === k.owner_user_id))}</td>
-                <td className="num">{canEdit ? <form action={updateKpiTarget} style={{ display: "flex", gap: 4, justifyContent: "flex-end" }}><input type="hidden" name="kpi_id" value={k.id} /><input name="target_value" type="number" step="any" defaultValue={target ?? ""} style={{ width: 110, textAlign: "right" }} /><button className="btn ghost" type="submit" style={{ padding: "3px 8px", fontSize: 12 }}>Set</button></form> : formatValue(target, k.unit)}</td>
+                <td className="num">{canEdit ? <form action={updateKpiTarget} style={{ display: "flex", gap: 4, justifyContent: "flex-end" }}><input type="hidden" name="kpi_id" value={k.id} /><input name="target_value" type="number" step="any" defaultValue={target ?? ""} style={{ width: 110, textAlign: "right" }} /><button className="btn ghost small" type="submit">Set</button></form> : formatValue(target, k.unit)}</td>
                 {series.map((val, i) => <td key={i} className="num">{formatValue(val, k.unit)}</td>)}
                 <td><span className={`pill ${ragClass[r]}`}>{ragText[r]}</span>{v != null && r !== "none" && <span className="kv"> {v >= 0 ? "+" : ""}{formatValue(v, k.unit)}</span>}</td>
                 <td className="kv">{t === "none" ? "—" : t}</td>

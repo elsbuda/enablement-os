@@ -29,7 +29,7 @@ export default async function Execution({ searchParams }: { searchParams: Promis
         <h1>90 Day Execution</h1>
         <p className="sub">Start a 90-day period, then break each initiative into actions with an owner and a date. One active period at a time.</p>
         {sp.error && <div className="error">{sp.error}</div>}
-        {priorities.length === 0 && <div className="card" style={{ marginBottom: 14 }}>Set at least one priority in the <a href="/plan">Strategy and Growth Plan</a> first, so actions have something to serve.</div>}
+        {priorities.length === 0 && <div className="ok" style={{ background: "var(--tint)", color: "var(--accent)", borderColor: "var(--accent)" }}>Set at least one priority in the <a href="/plan">Strategy and Growth Plan</a> first, so actions have something to serve.</div>}
         {canEdit && (
           <form action={startPeriod} className="card">
             <h2>Start the next 90 days</h2>
@@ -51,7 +51,7 @@ export default async function Execution({ searchParams }: { searchParams: Promis
       <h1>90-day board · {period.label}</h1>
       <p className="sub">{period.start_date} to {period.end_date} · week {week} of 13. Every action has an owner, a due date and a status; Late and At risk are worked out from the dates, not typed.</p>
       {sp.error && <div className="error">{sp.error}</div>}
-      {sp.saved && <div className="card" style={{ marginBottom: 14 }}>{sp.saved}</div>}
+      {sp.saved && <div className="ok">{sp.saved}</div>}
       <div className="row" style={{ marginBottom: 14 }}>
         <div className="card"><div className="kv">Done</div><div className="big">{sum.done}<span className="kv"> / {sum.total}</span></div><div className="bar"><i style={{ width: `${sum.completion_pct}%` }} /></div></div>
         <div className="card"><div className="kv">On track</div><div className="big">{sum.on_track}</div></div>
@@ -83,10 +83,10 @@ export default async function Execution({ searchParams }: { searchParams: Promis
                           <td><span className={`pill ${pillFor(a.derived)}`}>{label(a.derived)}</span></td>
                           {canEdit && <td><form action={setActionStatus} style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
                             <input type="hidden" name="id" value={a.id} /><input type="hidden" name="from" value="/execution" />
-                            {a.derived !== "done" && <button className="btn ghost" name="status" value="on_track" type="submit" style={{ padding: "3px 8px", fontSize: 12 }}>Started</button>}
-                            {a.derived !== "done" && <button className="btn ghost" name="status" value="at_risk" type="submit" style={{ padding: "3px 8px", fontSize: 12 }}>Flag risk</button>}
-                            {a.derived !== "done" ? <button className="btn" name="status" value="done" type="submit" style={{ padding: "3px 8px", fontSize: 12 }}>Done</button>
-                              : <button className="btn ghost" name="status" value="on_track" type="submit" style={{ padding: "3px 8px", fontSize: 12 }}>Reopen</button>}
+                            {a.derived !== "done" && <button className="btn ghost small" name="status" value="on_track" type="submit">Started</button>}
+                            {a.derived !== "done" && <button className="btn ghost small" name="status" value="at_risk" type="submit">Flag risk</button>}
+                            {a.derived !== "done" ? <button className="btn small" name="status" value="done" type="submit">Done</button>
+                              : <button className="btn ghost small" name="status" value="on_track" type="submit">Reopen</button>}
                           </form></td>}
                         </tr>))}
                       </tbody>

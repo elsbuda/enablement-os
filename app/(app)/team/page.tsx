@@ -27,7 +27,7 @@ export default async function Team({ searchParams }: { searchParams: Promise<{ e
       <h1>Team</h1>
       <p className="sub">{sub ? `${sub.package.toUpperCase()} package · ${seatsUsed} of ${sub.seats} seats in use` : ""}. Viewers do not use a seat.</p>
       {sp.error && <div className="error">{sp.error}</div>}
-      {sp.saved && <div className="card" style={{ marginBottom: 14 }}>{sp.saved}</div>}
+      {sp.saved && <div className="ok">{sp.saved}</div>}
 
       <div className="card" style={{ marginBottom: 14 }}>
         <h2>Members</h2>
@@ -43,9 +43,9 @@ export default async function Team({ searchParams }: { searchParams: Promise<{ e
                   <form action={changeRole} style={{ display: "flex", gap: 4 }}>
                     <input type="hidden" name="user_id" value={m.user_id} />
                     <select name="role" defaultValue={m.role}><option value="admin">admin</option><option value="editor">editor</option><option value="viewer">viewer</option></select>
-                    <button className="btn ghost" type="submit" style={{ padding: "3px 8px", fontSize: 12 }}>Set</button>
+                    <button className="btn ghost small" type="submit">Set</button>
                   </form>
-                  <form action={removeMember}><input type="hidden" name="user_id" value={m.user_id} /><button className="btn ghost" type="submit" style={{ padding: "3px 8px", fontSize: 12 }}>Remove</button></form>
+                  <form action={removeMember}><input type="hidden" name="user_id" value={m.user_id} /><button className="btn ghost small" type="submit">Remove</button></form>
                 </div>
               )}</td>}
             </tr>))}
@@ -75,7 +75,7 @@ export default async function Team({ searchParams }: { searchParams: Promise<{ e
                     <td>{i.email}</td><td>{i.role}</td>
                     <td><input readOnly value={`${origin}/invite/${i.token}`} style={{ fontSize: 12, fontFamily: "ui-monospace, monospace" }} /></td>
                     <td className="kv">{new Date(i.expires_at).toLocaleDateString("en-ZA")}</td>
-                    <td><form action={revokeInvitation}><input type="hidden" name="id" value={i.id} /><button className="btn ghost" type="submit" style={{ padding: "3px 8px", fontSize: 12 }}>Withdraw</button></form></td>
+                    <td><form action={revokeInvitation}><input type="hidden" name="id" value={i.id} /><button className="btn ghost small" type="submit">Withdraw</button></form></td>
                   </tr>))}
                 </tbody>
               </table></div>
