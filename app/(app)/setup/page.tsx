@@ -1,5 +1,6 @@
 import { getSession, supabaseServer } from "@/lib/supabase/server";
-import { saveCompanyContext } from "./actions";
+import { saveCompanyContext, uploadLogo, removeLogo } from "./actions";
+import { logoUrl } from "@/lib/logo";
 import { acceptInvitation } from "@/app/(app)/team/actions";
 
 const SECTORS = ["Engineering services", "Distribution", "IT and software", "Professional services", "Light manufacturing", "Other"];
@@ -10,11 +11,11 @@ const MONTHS = ["January", "February", "March", "April", "May", "June", "July", 
 export default async function Setup({ searchParams }: { searchParams: Promise<{ error?: string; saved?: string }> }) {
   const { error, saved } = await searchParams;
   const s = (await getSession())!;
-  let company: { name: string; sector: string | null; staff_band: string | null; turnover_band: string | null; financial_year_end: number | null } | null = null;
+  let company: { name: string; sector: string | null; staff_band: string | null; turnover_band: string | null; financial_year_end: number | null; logo_path: string | null } | null = null;
   let profile: { products: string[]; customer_types: string[]; sales_team_size: number | null } | null = null;
   if (s.companyId) {
     const supabase = await supabaseServer();
-    const { data: c } = await supabase.from("companies").select("name, sector, staff_band, turnover_band, financial_year_end").eq("id", s.companyId).maybeSingle();
+    const { data: c } = await supabase.from("companies").select("name, sector, staff_band, turnover_band, financial_year_end, logo_path").eq("id", s.companyId).maybeSingle();
     company = c;
     const { data: p } = await supabase.from("company_profile").select("products, customer_types, sales_team_size").eq("company_id", s.companyId).order("version", { ascending: false }).limit(1).maybeSingle();
     profile = p;
@@ -47,7 +48,9 @@ export default async function Setup({ searchParams }: { searchParams: Promise<{ 
       <h1>{isNew ? "Create your company workspace" : `Company context: ${company?.name}`}</h1>
       <p className="sub">Entered once. Every workspace reads from this, so you never type it again. Each save keeps a dated version.</p>
       {error && <div className="error">{error}</div>}
-      {saved && <div className="ok">Saved. <a href="/health-check">Start the Business Health Check</a>.</div>}
+      {saved === "logo" && <div className="ok">Logo updated. It now shows in the side panel and on reports.</div>}
+      {saved === "logo-removed" && <div className="ok">Logo removed.</div>}
+      {saved && saved !== "logo" && saved !== "logo-removed" && <div className="ok">Saved. <a href="/health-check">Start the Business Health Check</a>.</div>}
       <form action={saveCompanyContext} className="card">
         <div className="form">
           <div><label htmlFor="name">Company name</label><input id="name" name="name" required minLength={2} maxLength={120} defaultValue={company?.name ?? ""} readOnly={!isNew && s.role !== "owner" && s.role !== "admin"} /></div>
@@ -61,6 +64,24 @@ export default async function Setup({ searchParams }: { searchParams: Promise<{ 
         </div>
         <div className="actions"><button className="btn" type="submit">{isNew ? "Create workspace" : "Save new version"}</button></div>
       </form>
+      {!isNew && (s.role === "owner" || s.role === "admin") && (
+        <div className="card" style={{ marginTop: 16 }}>
+          <h2>Company logo</h2>
+          <div className="logo-row">
+            <div className="logo-preview">{company?.logo_path ? <img src={logoUrl(company.logo_path)!} alt={`${company.name} logo`} /> : <span className="kv">No logo yet</span>}</div>
+            <div style={{ flex: 1, minWidth: 220 }}>
+              <form action={uploadLogo}>
+                <label htmlFor="logo">Upload a PNG, JPG, WebP or SVG, up to 1 MB. A square or wide logo on a transparent or white background works best.</label>
+                <input id="logo" name="logo" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" required />
+                <div className="actions" style={{ marginTop: 12 }}>
+                  <button className="btn" type="submit">{company?.logo_path ? "Replace logo" : "Upload logo"}</button>
+                  {company?.logo_path && <button className="btn ghost" type="submit" formAction={removeLogo} formNoValidate>Remove logo</button>}
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
       {isNew && <p className="note">Creating the workspace starts a trial subscription on the BUILD package (3 seats). Payment is added in a later stage; nothing is charged here.</p>}
     </>
   );

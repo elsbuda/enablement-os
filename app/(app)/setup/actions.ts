@@ -46,3 +46,38 @@ export async function saveCompanyContext(form: FormData) {
   if (e2) redirect(`/setup?error=${encodeURIComponent(e2.message)}`);
   redirect("/setup?saved=1");
 }
+
+const LOGO_TYPES: Record<string, string> = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "image/svg+xml": "svg" };
+const LOGO_MAX = 1024 * 1024;
+
+export async function uploadLogo(form: FormData) {
+  const session = await getSession();
+  if (!session?.companyId) redirect("/sign-in");
+  if (session.role !== "owner" && session.role !== "admin") redirect(`/setup?error=${encodeURIComponent("Only owners and admins can change the logo.")}`);
+  const file = form.get("logo");
+  if (!(file instanceof File) || file.size === 0) redirect(`/setup?error=${encodeURIComponent("Choose a logo file first.")}`);
+  const ext = LOGO_TYPES[file.type];
+  if (!ext) redirect(`/setup?error=${encodeURIComponent("Use a PNG, JPG, WebP or SVG file.")}`);
+  if (file.size > LOGO_MAX) redirect(`/setup?error=${encodeURIComponent("The logo must be 1 MB or smaller.")}`);
+  const supabase = await supabaseServer();
+  // A fresh file name per upload so browsers never show a stale logo; the old file is removed.
+  const path = `${session.companyId}/logo-${Date.now()}.${ext}`;
+  const { data: existing } = await supabase.storage.from("logos").list(session.companyId);
+  if (existing?.length) await supabase.storage.from("logos").remove(existing.map((o) => `${session.companyId}/${o.name}`));
+  const { error } = await supabase.storage.from("logos").upload(path, file, { contentType: file.type, cacheControl: "31536000" });
+  if (error) redirect(`/setup?error=${encodeURIComponent("Upload failed: " + error.message)}`);
+  const { error: e2 } = await supabase.from("companies").update({ logo_path: path }).eq("id", session.companyId);
+  if (e2) redirect(`/setup?error=${encodeURIComponent(e2.message)}`);
+  redirect("/setup?saved=logo");
+}
+
+export async function removeLogo() {
+  const session = await getSession();
+  if (!session?.companyId) redirect("/sign-in");
+  if (session.role !== "owner" && session.role !== "admin") redirect(`/setup?error=${encodeURIComponent("Only owners and admins can change the logo.")}`);
+  const supabase = await supabaseServer();
+  const { data: existing } = await supabase.storage.from("logos").list(session.companyId);
+  if (existing?.length) await supabase.storage.from("logos").remove(existing.map((o) => `${session.companyId}/${o.name}`));
+  await supabase.from("companies").update({ logo_path: null }).eq("id", session.companyId);
+  redirect("/setup?saved=logo-removed");
+}
