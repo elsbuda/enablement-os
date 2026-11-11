@@ -1,6 +1,8 @@
 import { getSession, supabaseServer } from "@/lib/supabase/server";
 import { HEALTH_AREAS, HEALTH_QUESTIONS, HEALTH_SCALE } from "@/lib/templates/health-check-v1";
 import { saveArea, startOrContinue } from "./actions";
+import { PageHead, Help, Empty } from "@/components/page";
+
 
 export default async function HealthCheck({ searchParams }: { searchParams: Promise<{ a?: string; area?: string; error?: string }> }) {
   const { a, area, error } = await searchParams;
@@ -13,10 +15,9 @@ export default async function HealthCheck({ searchParams }: { searchParams: Prom
     const { data: open } = await supabase.from("assessments").select("id").eq("company_id", s.companyId).eq("status", "in_progress").limit(1).maybeSingle();
     return (
       <>
-        <h1>Business Health Check</h1>
-        <p className="sub">48 statements in 8 areas. Answer how true each one is today. Takes 60 to 90 minutes; you can pause and come back. Nothing is scored until you finish.</p>
+        <PageHead title="Business Health Check" context="48 statements, 8 areas, about an hour. Pause any time." action={<form action={startOrContinue}><button className="btn" type="submit">{open ? "Continue where you left off" : "Start a new Health Check"}</button></form>} />
         {error && <div className="error">{error}</div>}
-        <form action={startOrContinue}><button className="btn" type="submit">{open ? "Continue the open Health Check" : "Start a new Health Check"}</button></form>
+        {!open && (!done || done.length === 0) && <Empty title="No Health Check yet" action={<form action={startOrContinue}><button className="btn" type="submit">Start a new Health Check</button></form>}>Rate how true 48 statements are for your business today. You get a score per area and three suggested priorities.</Empty>}
         {done && done.length > 0 && (
           <div className="card" style={{ marginTop: 20 }}>
             <h2>Previous Health Checks</h2>
@@ -39,10 +40,9 @@ export default async function HealthCheck({ searchParams }: { searchParams: Prom
 
   return (
     <>
-      <h1>Business Health Check</h1>
-      <p className="sub">{current.plain}</p>
-      <div className="kv">Area {idx + 1} of {HEALTH_AREAS.length} · {current.title} · {qs.length} statements · {answeredTotal} of {HEALTH_QUESTIONS.length} answered so far</div>
-      <div className="bar"><i style={{ width: `${Math.round((answeredTotal / HEALTH_QUESTIONS.length) * 100)}%` }} /></div>
+      <PageHead title="Business Health Check" context={<>Area {idx + 1} of {HEALTH_AREAS.length}: <strong>{current.title}</strong> · {answeredTotal} of {HEALTH_QUESTIONS.length} answered</>} />
+      <div className="bar" style={{ marginTop: -10 }}><i style={{ width: `${Math.round((answeredTotal / HEALTH_QUESTIONS.length) * 100)}%` }} /></div>
+      <p className="kv" style={{ marginTop: 10 }}>{current.plain}</p>
       {error && <div className="error" style={{ marginTop: 14 }}>{error}</div>}
       <form action={saveArea} style={{ marginTop: 14 }}>
         <input type="hidden" name="assessment_id" value={a} />
@@ -63,7 +63,7 @@ export default async function HealthCheck({ searchParams }: { searchParams: Prom
           <button className="btn" type="submit" name="nav" value="next">{idx < HEALTH_AREAS.length - 1 ? "Save and next area" : "Finish and see results"}</button>
         </div>
       </form>
-      <p className="note">Answers are saved each time you move between areas. &quot;Don&apos;t know&quot; counts as 1, because not knowing is itself a gap.</p>
+      <Help><p>Answers save each time you move between areas, so you can stop and come back.</p><p>&quot;Don&apos;t know&quot; scores 1: not knowing is itself a gap worth fixing.</p></Help>
     </>
   );
 }

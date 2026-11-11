@@ -5,6 +5,7 @@ import { KPI_LIBRARY, PERSPECTIVE_LABEL } from "@/lib/templates/kpi-library";
 import { QUARTERS, UNITS, formatValue } from "@/lib/engine/plan";
 import { defaultPlanYear, loadMembers, loadPlan, memberName } from "@/lib/data/plan";
 import { acceptSuggestions, addPriority, addTarget, deleteTarget, retirePriority, updatePriority } from "./actions";
+import { PageHead, Help, Empty } from "@/components/page";
 
 const areaTitle = (k: string | null) => HEALTH_AREAS.find((a) => a.key === k)?.title ?? k ?? "";
 
@@ -39,12 +40,10 @@ export default async function Plan({ searchParams }: { searchParams: Promise<{ y
 
   return (
     <>
-      <h1>Strategy and Growth Plan · {year}</h1>
-      <p className="sub">Three to five priorities for the year, each with one to three targets that say how you will know it happened. {priorities.length} of 5 priorities set.</p>
-      <div className="row" style={{ alignItems: "center", marginBottom: 12 }}>
-        <span className="kv">Plan year:</span>
-        {years.map((y) => <a key={y} className={`pill ${y === year ? "n" : ""}`} href={`/plan?year=${y}`} style={{ textDecoration: "none" }}>{y}</a>)}
-        {priorities.length > 0 && <a className="btn ghost" href={`/plan/review?year=${year}`} style={{ marginLeft: "auto" }}>Quarterly review mode</a>}
+      <PageHead title="Strategy and Growth Plan" context={<>{year} · {priorities.length} of 5 priorities set</>} action={priorities.length > 0 ? <a className="btn ghost" href={`/plan/review?year=${year}`}>Quarterly review</a> : undefined} />
+      <div className="row" style={{ alignItems: "center", marginBottom: 14, marginTop: -8 }}>
+        <span className="kv">Plan year</span>
+        {years.map((y) => <a key={y} className={`pill ${y === year ? "n" : ""}`} href={`/plan?year=${y}`} aria-current={y === year ? "true" : undefined}>{y}</a>)}
       </div>
       {sp.error && <div className="error">{sp.error}</div>}
       {sp.saved && <div className="ok">{sp.saved}</div>}
@@ -138,8 +137,8 @@ export default async function Plan({ searchParams }: { searchParams: Promise<{ y
           </div>
         </form>
       )}
-      {priorities.length === 0 && suggestions.length === 0 && <p className="note">Complete a <a href="/health-check">Health Check</a> first and the three lowest areas will be suggested here.</p>}
-      <p className="note">Words we use: a <strong>priority</strong> is one thing you will change this year; a <strong>target</strong> is the number, date and owner that prove it happened; a measure marked <em>tracked</em> is also on the scorecard for monthly actuals.</p>
+      {priorities.length === 0 && suggestions.length === 0 && <Empty title="No priorities yet" action={<a className="btn" href="/health-check">Start the Health Check</a>}>Finish a Health Check and your three weakest areas are suggested here, or add a priority of your own below.</Empty>}
+      <Help title="Words we use"><p>a <strong>priority</strong> is one thing you will change this year; a <strong>target</strong> is the number, date and owner that prove it happened; a measure marked <em>tracked</em> is also on the scorecard for monthly actuals.</p></Help>
     </>
   );
 }

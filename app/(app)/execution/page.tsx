@@ -2,6 +2,7 @@ import { getSession, supabaseServer } from "@/lib/supabase/server";
 import { defaultPlanYear, loadMembers, loadPlan, memberName } from "@/lib/data/plan";
 import { deriveStatus, summarise, weekOf, type ActionRow } from "@/lib/engine/execution";
 import { addAction, addInitiative, closePeriod, setActionStatus, startPeriod } from "./actions";
+import { PageHead, Help, Empty } from "@/components/page";
 
 const pillFor = (d: string) => (d === "done" ? "g" : d === "late" ? "b" : d === "at_risk" ? "w" : "n");
 const label = (d: string) => ({ done: "Done", late: "Late", at_risk: "At risk", on_track: "On track", not_started: "Not started" }[d] ?? d);
@@ -26,10 +27,9 @@ export default async function Execution({ searchParams }: { searchParams: Promis
   if (!period) {
     return (
       <>
-        <h1>90 Day Execution</h1>
-        <p className="sub">Start a 90-day period, then break each initiative into actions with an owner and a date. One active period at a time.</p>
+        <PageHead title="90 Day Execution" context="No active period. Start one, then break each priority into actions with an owner and a date." />
         {sp.error && <div className="error">{sp.error}</div>}
-        {priorities.length === 0 && <div className="ok" style={{ background: "var(--tint)", color: "var(--accent)", borderColor: "var(--accent)" }}>Set at least one priority in the <a href="/plan">Strategy and Growth Plan</a> first, so actions have something to serve.</div>}
+        {priorities.length === 0 && <Empty title="Set a priority first" action={<a className="btn" href="/plan">Open the Strategy and Growth Plan</a>}>Actions serve priorities, so the plan needs at least one before a period can start.</Empty>}
         {canEdit && (
           <form action={startPeriod} className="card">
             <h2>Start the next 90 days</h2>
@@ -48,8 +48,7 @@ export default async function Execution({ searchParams }: { searchParams: Promis
   const week = weekOf(period.start_date, today);
   return (
     <>
-      <h1>90-day board · {period.label}</h1>
-      <p className="sub">{period.start_date} to {period.end_date} · week {week} of 13. Every action has an owner, a due date and a status; Late and At risk are worked out from the dates, not typed.</p>
+      <PageHead title="90 Day Execution" context={<>{period.label} · {period.start_date} to {period.end_date} · week {week} of 13</>} action={<a className="btn" href="/execution/checkin">Weekly check-in</a>} />
       {sp.error && <div className="error">{sp.error}</div>}
       {sp.saved && <div className="ok">{sp.saved}</div>}
       <div className="row" style={{ marginBottom: 14 }}>

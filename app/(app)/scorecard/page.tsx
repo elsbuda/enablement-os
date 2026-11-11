@@ -5,6 +5,7 @@ import { lastMonths, monthLabel, rag, trend, variance, type Rag } from "@/lib/en
 import { PERSPECTIVE_LABEL } from "@/lib/templates/kpi-library";
 import { deriveStatus, summarise, type ActionRow } from "@/lib/engine/execution";
 import { saveActuals, updateKpiTarget } from "./actions";
+import { PageHead, Help, Empty } from "@/components/page";
 
 const ragClass: Record<Rag, string> = { green: "g", amber: "w", red: "b", none: "" };
 const ragText: Record<Rag, string> = { green: "On target", amber: "Just short", red: "Off target", none: "No data" };
@@ -36,8 +37,7 @@ export default async function Scorecard({ searchParams }: { searchParams: Promis
 
   return (
     <>
-      <h1>CEO Scorecard · {monthLabel(latest)}</h1>
-      <p className="sub">Each measure against its monthly target, with the trend over the last three months. Measures come from the targets you set in the plan.</p>
+      <PageHead title="CEO Scorecard" context={<>{monthLabel(latest)} · each measure against its monthly target, with a three-month trend</>} />
       {sp.error && <div className="error">{sp.error}</div>}
       {sp.saved && <div className="ok">{sp.saved}</div>}
       <div className="row" style={{ marginBottom: 14 }}>
@@ -62,7 +62,7 @@ export default async function Scorecard({ searchParams }: { searchParams: Promis
               </tr>))}
             </tbody>
           </table></div>
-          <p className="note">Targets set in the plan are annual; the monthly target here defaults to the annual figure and should be set to the monthly equivalent (for a rand or count measure, roughly the annual target divided by 12; for a percentage or days measure, the same figure). Trend compares the latest month with the earliest of the three shown.</p>
+          <Help title="About monthly targets"><p>Targets set in the plan are annual; the monthly target here defaults to the annual figure and should be set to the monthly equivalent (for a rand or count measure, roughly the annual target divided by 12; for a percentage or days measure, the same figure). Trend compares the latest month with the earliest of the three shown.</p></Help>
         </div>
       )}
 
@@ -77,7 +77,7 @@ export default async function Scorecard({ searchParams }: { searchParams: Promis
             ))}
           </div>
           <div className="actions"><button className="btn" type="submit">Save actuals</button></div>
-          <p className="note">Typed in monthly by the owner or admin. No accounting or CRM integration in release 1.</p>
+          <p className="kv">Typed in once a month by the owner or an admin.</p>
         </form>
       )}
     </>

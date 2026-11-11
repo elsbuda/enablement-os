@@ -2,6 +2,7 @@ import { getSession } from "@/lib/supabase/server";
 import { defaultPlanYear, loadMembers, loadPlan, memberName } from "@/lib/data/plan";
 import { PLAN_BANDS, TARGET_STATUS, formatValue, scorePlan } from "@/lib/engine/plan";
 import { saveReview } from "../actions";
+import { PageHead, Help, Empty } from "@/components/page";
 
 export default async function Review({ searchParams }: { searchParams: Promise<{ year?: string; saved?: string; error?: string }> }) {
   const sp = await searchParams;
@@ -15,8 +16,7 @@ export default async function Review({ searchParams }: { searchParams: Promise<{
 
   return (
     <>
-      <h1>Quarterly review · {year} plan</h1>
-      <p className="sub">For each target, say how far it landed: 0 = not at all, 1 = fully. The plan score is the average of the priorities, each the average of its targets.</p>
+      <PageHead title="Quarterly review" crumb={[{ href: `/plan?year=${year}`, label: "Strategy and Growth Plan" }]} context={<>{year} plan · for each target, how far did it land? 0 = not at all, 1 = fully</>} />
       {sp.error && <div className="error">{sp.error}</div>}
       {sp.saved && <div className="ok">Review saved.</div>}
       <div className="row" style={{ marginBottom: 16 }}>

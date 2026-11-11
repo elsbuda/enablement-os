@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import { getSession, supabaseServer } from "@/lib/supabase/server";
 import { loadMembers, memberName } from "@/lib/data/plan";
 import { changeRole, invite, removeMember, revokeInvitation } from "./actions";
+import { PageHead, Help, Empty } from "@/components/page";
 
 const ROLE_HELP: Record<string, string> = {
   owner: "Billing, users, everything.", admin: "All content and invites.", editor: "Edit plans, actions and actuals.", viewer: "Read and export only; does not use a seat.",
@@ -24,8 +25,7 @@ export default async function Team({ searchParams }: { searchParams: Promise<{ e
 
   return (
     <>
-      <h1>Team</h1>
-      <p className="sub">{sub ? `${sub.package.toUpperCase()} package · ${seatsUsed} of ${sub.seats} seats in use` : ""}. Viewers do not use a seat.</p>
+      <PageHead title="Team" context={sub ? `${sub.package.toUpperCase()} package · ${seatsUsed} of ${sub.seats} seats used (viewers are free)` : undefined} />
       {sp.error && <div className="error">{sp.error}</div>}
       {sp.saved && <div className="ok">{sp.saved}</div>}
 
@@ -62,7 +62,7 @@ export default async function Team({ searchParams }: { searchParams: Promise<{ e
               <div><label htmlFor="inv-role">Role</label><select id="inv-role" name="role" defaultValue="editor"><option value="admin">admin — all content and invites</option><option value="editor">editor — edit plans, actions, actuals</option><option value="viewer">viewer — read only, no seat</option></select></div>
               <div style={{ alignSelf: "end" }}><button className="btn" type="submit">Create invitation</button></div>
             </div>
-            <p className="note">You get a link to send by email or WhatsApp. The person signs in or creates an account with that exact email, and the link adds them to this workspace with the role you chose. Links expire after 14 days.</p>
+            <Help title="How invitations work"><p>You get a link to send by email or WhatsApp. The person signs in or creates an account with that exact email, and the link adds them to this workspace with the role you chose. Links expire after 14 days.</p></Help>
           </form>
 
           {invites && invites.length > 0 && (
@@ -79,7 +79,7 @@ export default async function Team({ searchParams }: { searchParams: Promise<{ e
                   </tr>))}
                 </tbody>
               </table></div>
-              <p className="note">Select the link text and copy it. Email sending from the app is not set up yet; that comes with the proper sender before pilots.</p>
+              <p className="kv">Copy the link and send it yourself; the app does not email it yet.</p>
             </div>
           )}
         </>

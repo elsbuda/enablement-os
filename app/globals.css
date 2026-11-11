@@ -219,3 +219,25 @@ nav.side .company .mono { width: 40px; height: 40px; border-radius: 8px; backgro
 .logo-preview img { max-width: 120px; max-height: 120px; object-fit: contain; }
 input[type="file"] { padding: 7px; background: var(--panel-2); cursor: pointer; }
 @media (max-width: 760px) { nav.side .company { grid-area: brand; margin: 0; } nav.side .brand { display: none; } }
+
+/* Street signs: page head, breadcrumb, help, empty states -------------------- */
+.head { margin-bottom: 22px; }
+.head-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.head-row h1 { margin-bottom: 2px; }
+.head-action { flex: none; padding-top: 4px; }
+.ctx { color: var(--muted); margin: 0; font-size: 15px; }
+.crumb { font-size: 13.5px; color: var(--muted); margin-bottom: 6px; }
+.crumb a { color: var(--muted); text-decoration: none; } .crumb a:hover { color: var(--accent); text-decoration: underline; }
+.help { margin-top: 18px; max-width: 70ch; font-size: 13.5px; color: var(--muted); }
+.help summary { cursor: pointer; color: var(--accent); font-weight: 500; list-style: none; display: inline-flex; align-items: center; gap: 6px; }
+.help summary::-webkit-details-marker { display: none; }
+.help summary::before { content: ""; width: 0; height: 0; border: 5px solid transparent; border-left-color: currentColor; border-right: 0; transition: transform .15s; }
+.help[open] summary::before { transform: rotate(90deg); }
+.help > div { margin-top: 8px; padding: 12px 14px; background: var(--panel-2); border-radius: var(--radius-s); line-height: 1.55; }
+.help > div p { margin: 0 0 8px; } .help > div p:last-child { margin-bottom: 0; }
+.empty { background: var(--panel); border: 1px dashed var(--line-strong); border-radius: var(--radius); padding: 24px; max-width: 60ch; }
+.empty h2 { margin-bottom: 6px; } .empty p { color: var(--muted); margin: 0; }
+.next { background: var(--rail); color: var(--rail-ink); border-radius: var(--radius); padding: 20px 22px; display: flex; gap: 18px; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 20px; }
+.next .kv { color: var(--rail-muted); } .next h2 { margin: 2px 0 4px; font-size: 19px; } .next p { margin: 0; color: var(--rail-ink); opacity: .9; max-width: 56ch; }
+.next .btn { background: #5fc2a1; color: #0c1d17; flex: none; } .next .btn:hover { background: #78d1b3; }
+@media (max-width: 760px) { .head-action { width: 100%; } .head-action .btn { width: 100%; } }

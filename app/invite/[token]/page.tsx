@@ -32,7 +32,7 @@ export default async function Invite({ params, searchParams }: { params: Promise
                 <div className="actions"><a className="btn ghost" href="/sign-in">Sign in with the other email</a></div>
               </>
             ) : s.companyId ? (
-              <div className="error">You already belong to a company workspace. Release 1 allows one workspace per person.</div>
+              <div className="error">You already belong to a company workspace, and each person can be in one workspace. Ask the owner of your current workspace to remove you if you need to move.</div>
             ) : (
               <form action={acceptInvitation}><input type="hidden" name="token" value={token} /><div className="actions"><button className="btn" type="submit">Join {inv.company_name}</button></div></form>
             )}

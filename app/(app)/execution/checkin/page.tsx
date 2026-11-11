@@ -2,6 +2,7 @@ import { getSession, supabaseServer } from "@/lib/supabase/server";
 import { loadMembers, memberName } from "@/lib/data/plan";
 import { deriveStatus, weekOf, type ActionRow } from "@/lib/engine/execution";
 import { moveActionDate, setActionStatus } from "../actions";
+import { PageHead, Help, Empty } from "@/components/page";
 
 export default async function CheckIn({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const sp = await searchParams;
@@ -10,7 +11,7 @@ export default async function CheckIn({ searchParams }: { searchParams: Promise<
   const supabase = await supabaseServer();
   const canEdit = s.role !== "viewer";
   const { data: period } = await supabase.from("periods").select("*").eq("company_id", s.companyId).eq("status", "active").maybeSingle();
-  if (!period) return <><h1>Weekly check-in</h1><p className="sub">No active period. <a href="/execution">Start one on the 90-day board</a>.</p></>;
+  if (!period) return <><PageHead title="Weekly check-in" crumb={[{ href: "/execution", label: "90 Day Execution" }]} /><Empty title="No active 90-day period" action={<a className="btn" href="/execution">Start a period</a>}>The check-in lists what is late, at risk or due this week in the current period.</Empty></>;
   const members = await loadMembers(s.companyId);
   const today = new Date();
   const rows = ((await supabase.from("actions").select("*").eq("period_id", period.id).order("due_date")).data ?? []) as ActionRow[];
@@ -20,10 +21,9 @@ export default async function CheckIn({ searchParams }: { searchParams: Promise<
 
   return (
     <>
-      <h1>Weekly check-in · week {weekOf(period.start_date, today)}</h1>
-      <p className="sub">Only what is late, at risk or due in the next 7 days. Built for a phone on a Monday morning.</p>
+      <PageHead title="Weekly check-in" crumb={[{ href: "/execution", label: "90 Day Execution" }]} context={<>Week {weekOf(period.start_date, today)} of 13 · only what is late, at risk or due in the next 7 days</>} />
       {sp.error && <div className="error">{sp.error}</div>}
-      {items.length === 0 && <div className="card">Nothing late, at risk or due this week. <a href="/execution">See the full board</a>.</div>}
+      {items.length === 0 && <Empty title="Nothing needs a decision this week" action={<a className="btn ghost" href="/execution">See the full board</a>}>No actions are late, at risk or due in the next 7 days.</Empty>}
       {items.map((a) => (
         <div className="card" key={a.id} style={{ marginBottom: 12 }}>
           <span className={`pill ${a.derived === "late" ? "b" : a.derived === "at_risk" ? "w" : "n"}`}>{a.derived === "late" ? "Late" : a.derived === "at_risk" ? "At risk" : "Due soon"}</span> <strong>{a.title}</strong>

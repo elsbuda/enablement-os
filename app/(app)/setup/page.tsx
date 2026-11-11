@@ -2,6 +2,7 @@ import { getSession, supabaseServer } from "@/lib/supabase/server";
 import { saveCompanyContext, uploadLogo, removeLogo } from "./actions";
 import { logoUrl } from "@/lib/logo";
 import { acceptInvitation } from "@/app/(app)/team/actions";
+import { PageHead, Help, Empty } from "@/components/page";
 
 const SECTORS = ["Engineering services", "Distribution", "IT and software", "Professional services", "Light manufacturing", "Other"];
 const STAFF = ["10 to 25", "26 to 50", "51 to 100"];
@@ -45,8 +46,7 @@ export default async function Setup({ searchParams }: { searchParams: Promise<{ 
           <p className="note">Or create your own company workspace below instead.</p>
         </div>
       )}
-      <h1>{isNew ? "Create your company workspace" : `Company context: ${company?.name}`}</h1>
-      <p className="sub">Entered once. Every workspace reads from this, so you never type it again. Each save keeps a dated version.</p>
+      <PageHead title={isNew ? "Create your company workspace" : "Company context"} context={isNew ? "Two minutes. Every workspace reads from this." : `${company?.name} · entered once, every workspace reads from it`} />
       {error && <div className="error">{error}</div>}
       {saved === "logo" && <div className="ok">Logo updated. It now shows in the side panel and on reports.</div>}
       {saved === "logo-removed" && <div className="ok">Logo removed.</div>}
@@ -82,7 +82,8 @@ export default async function Setup({ searchParams }: { searchParams: Promise<{ 
           </div>
         </div>
       )}
-      {isNew && <p className="note">Creating the workspace starts a trial subscription on the BUILD package (3 seats). Payment is added in a later stage; nothing is charged here.</p>}
+      {isNew && <p className="note">This starts a free trial on the BUILD package (3 seats). Nothing is charged.</p>}
+      {!isNew && <Help><p>Each save keeps a dated version, so you can see how the business description changed over time.</p></Help>}
     </>
   );
 }

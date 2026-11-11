@@ -8,7 +8,7 @@ export default async function SignIn({ searchParams }: { searchParams: Promise<{
     <div className="auth">
       <div className="brand"><i aria-hidden /> Enablement OS</div>
       <h1>Sign in</h1>
-      <p className="sub">Use the work email you registered with.</p>
+      <p className="sub">Enablement OS helps owner-led businesses check their health, choose priorities, run 90-day plans and track results.</p>
       {!configured && <div className="error">Supabase is not configured. Copy .env.example to .env.local and fill in the project URL and anon key.</div>}
       {error && <div className="error">{error}{error.startsWith("Email or password") && <> <a href={signUpHref}>Create an account</a> if you are new.</>}</div>}
       {sent && <div className="ok">Confirmation email sent. Click the link in it, then sign in here.</div>}
